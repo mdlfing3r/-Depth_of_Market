@@ -1,0 +1,9 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/Depth_of_Market/.vs/Depth_of_Market
+*.filters
+*.user
+*.vcxproj
