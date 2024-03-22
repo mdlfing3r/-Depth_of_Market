@@ -5,8 +5,8 @@
 
 
 //Придумать или выбрать способ сортровки заказов в стакане на основании цены, чтобы для вывода топ 10 лучших, выводить this->Orders(0..9)
-
-enum changeOrderRetvalType {
+//Может для офера стоит использовать структуру ?
+enum editOrderRetval_t {
     invalidUUID = 0,
     success,
     invalidCost,
@@ -14,64 +14,83 @@ enum changeOrderRetvalType {
     prev_is_equal
 };
 
-class DOF {
+enum operation_t {
+    sell = 0,
+    buy
+};
 
+class DOF {
 
     DOF() = default;
 
     ~DOF() = default;
 
 public:
-    typedef uint16_t orderIDtype;
-    typedef std::pair<float, float> orderType;
-    typedef std::map<orderIDtype, orderType> ordersType;
+    typedef uint16_t offerID_t;
+    typedef std::pair<float, float> offer_t;
+    typedef std::pair<offerID_t, offer_t> transaction_t;
+    typedef <transaction_t>;
 
-    orderIDtype addOrder(float cost, float quantity);
-    changeOrderRetvalType changeOrder(orderIDtype order, float cost, float quantity);
-    void deleteOrder(orderIDtype order);
-    ordersType ShowTopOrders();
+    offerID_t createOrder(offer_t offerParams, operation_t operationType);
+    editOrderRetval_t editOrder(transaction_t transaction);
+    offerID_t ShowTopOrders();
+    void deleteOrder(offerID_t order);
 
 
 private:
-    static orderIDtype curUUID;
-    ordersType Orders;
-    ordersType BestOrders;
+    offerID_t createSellOrder(offer_t offerParams);
+    offerID_t createBuyOrder(offer_t offerParams);
+    static offerID_t curUUID;
+    transaction_t Orders;
+    transaction_t BestOrders;
 };
 
-DOF::orderIDtype DOF::addOrder(float cost, float quantity)
+DOF::offerID_t DOF::createOrder(offer_t offerParams, operation_t operationType)
 {
-    if(!cost || !quantity) return 0;
+    if(!offerParams.first || !offerParams.second) return 0;
     curUUID++;
-    Orders.emplace(curUUID, std::make_pair(cost, quantity));
+
+    switch (operationType) {
+        case operation_t::sell:
+            createSellOrder(offerParams);
+            break;
+        case operation_t::buy:
+            createBuyOrder(offerParams);
+            break;
+        default:
+            break;
+    }
+
+    Orders.emplace(curUUID, offerParams);
     return curUUID;
 }
 
-changeOrderRetvalType DOF::changeOrder(orderIDtype order, float cost, float quantity)
+editOrderRetval_t DOF::editOrder(transaction_t transaction)
 {
-    changeOrderRetvalType retval;
+    editOrderRetval_t retval;
 
-    auto itr_Order = Orders.find(order);
+    auto itr_Order = Orders.find(transaction);
 
-    if (itr_Order == Orders.end()) return changeOrderRetvalType::invalidUUID;
-    if (!cost) return changeOrderRetvalType::invalidCost;
-    if (!quantity) return changeOrderRetvalType::invalidQuantity;
+    if (itr_Order == Orders.end()) return editOrderRetval_t::invalidUUID;
+    if (!cost) return editOrderRetval_t::invalidCost;
+    if (!quantity) return editOrderRetval_t::invalidQuantity;
 
     auto OrderInDOF = itr_Order->second;
 
-    if (OrderInDOF.first == cost || OrderInDOF.second == quantity)  return changeOrderRetvalType::prev_is_equal;
+    if (OrderInDOF.first == cost || OrderInDOF.second == quantity)  return editOrderRetval_t::prev_is_equal;
     
     OrderInDOF = std::make_pair(cost, quantity);
-    return changeOrderRetvalType::success;
+    return editOrderRetval_t::success;
 }
 
-void DOF::deleteOrder(orderIDtype order)
+void DOF::deleteOrder(orderID_t order)
 {
     auto itr_Order = Orders.find(order);
     if (itr_Order != Orders.end())
         Orders.erase(order);
 }
 
-DOF::ordersType DOF::ShowTopOrders()
+DOF::orderID_t DOF::ShowTopOrders()
 {
     BestOrders;
     return ordersType();
